@@ -9,123 +9,105 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(getLiveWeather, 100);
 });
 
-// Your REAL API Key from WeatherAPI.com
-const WEATHER_API_KEY = 'e2ad8f40b825445d9f763522253009';
-const WEATHER_API_URL = `https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=Solapur&aqi=no`;
+// Open-Meteo API (No key required) - Coordinates for Solapur
+const API_URL = `https://api.open-meteo.com/v1/forecast?latitude=17.68&longitude=75.92&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,surface_pressure&timezone=auto`;
+
+// Weather code mapping
+const weatherCodes = {
+    0: 'Clear sky', 
+    1: 'Mainly clear', 
+    2: 'Partly cloudy', 
+    3: 'Overcast',
+    45: 'Fog', 
+    48: 'Fog', 
+    51: 'Light drizzle', 
+    53: 'Moderate drizzle', 
+    55: 'Dense drizzle',
+    61: 'Light rain', 
+    63: 'Moderate rain', 
+    65: 'Heavy rain',
+    80: 'Light rain showers', 
+    81: 'Moderate rain showers', 
+    82: 'Heavy rain showers',
+    95: 'Thunderstorm',
+    96: 'Thunderstorm with hail',
+    99: 'Heavy thunderstorm with hail'
+};
 
 // Refresh settings
 let refreshInterval = 30000; // 30 seconds default
 let autoRefreshEnabled = true;
 
-class RealWeatherService {
-    constructor() {
-        this.isLive = false;
-    }
-
-    async fetchRealWeather() {
-        try {
-            console.log('🔗 Fetching LIVE weather data from WeatherAPI...');
-            const response = await fetch(WEATHER_API_URL);
-            
-            if (!response.ok) {
-                throw new Error(`API Error: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            console.log('✅ LIVE data received:', data);
-            return this.parseRealData(data);
-            
-        } catch (error) {
-            console.error('❌ API failed:', error);
-            // Fallback to realistic simulation if API fails
-            return this.getRealisticSimulation();
-        }
-    }
-
-    parseRealData(data) {
-        const current = data.current;
-        const location = data.location;
+async function getLiveWeather() {
+    try {
+        console.log('🔗 Fetching weather data from Open-Meteo...');
+        const response = await fetch(API_URL);
         
-        return {
-            temperature: Math.round(current.temp_c),
-            humidity: current.humidity,
-            condition: current.condition.text,
-            windSpeed: Math.round(current.wind_kph),
-            pressure: current.pressure_mb,
-            feelsLike: Math.round(current.feelslike_c),
-            uvIndex: current.uv,
-            visibility: current.vis_km,
-            source: 'WeatherAPI.com - LIVE',
-            isLive: true,
-            location: location.name,
-            region: location.region,
-            country: location.country,
-            localTime: location.localtime
-        };
-    }
-
-    getRealisticSimulation() {
-        // Fallback data (in case API fails)
-        return {
-            temperature: 30,
-            humidity: 55,
-            condition: 'Partly cloudy',
-            windSpeed: 12,
-            pressure: 1015,
-            feelsLike: 32,
-            uvIndex: 7,
-            visibility: 10,
-            source: 'Simulation (API Failed)',
-            isLive: false,
-            location: 'Solapur',
-            region: 'Maharashtra',
-            country: 'India'
-        };
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ LIVE data received:', data);
+        
+        updateDisplay(data);
+        
+    } catch (error) {
+        console.error('❌ API failed:', error);
+        showFallbackData();
     }
 }
 
-// Initialize service
-const weatherService = new RealWeatherService();
+function updateDisplay(data) {
+    const current = data.current;
+    
+    // Calculate feels-like temperature (simple approximation)
+    const feelsLike = Math.round(current.temperature_2m + (current.relative_humidity_2m > 70 ? 2 : 0));
+    
+    // Update weather data
+    document.getElementById('temperature').textContent = `${Math.round(current.temperature_2m)}°C`;
+    document.getElementById('humidity').textContent = `${current.relative_humidity_2m}%`;
+    document.getElementById('condition').textContent = weatherCodes[current.weather_code] || 'Unknown';
+    document.getElementById('wind-speed').textContent = `${Math.round(current.wind_speed_10m)} km/h`;
+    document.getElementById('pressure').textContent = `${Math.round(current.surface_pressure)} hPa`;
+    document.getElementById('feels-like').textContent = `${feelsLike}°C`;
+    document.getElementById('last-updated').textContent = new Date().toLocaleString();
+    
+    // Update location info
+    document.getElementById('location').innerHTML = 
+        `📍 <strong>Solapur, Maharashtra, India</strong>`;
+    
+    // Update status
+    document.getElementById('api-status').innerHTML = 
+        '✅ <strong>LIVE DATA CONNECTED</strong><br>Open-Meteo API • No Key Required';
+    document.getElementById('api-status').className = 'status-live';
+    document.getElementById('data-source').textContent = 
+        `🌐 Real-time weather data • Updates every 30 seconds`;
+}
 
-async function getLiveWeather() {
-    try {
-        const weatherData = await weatherService.fetchRealWeather();
-        
-        // Update ALL display elements with REAL data
-        document.getElementById('temperature').textContent = `${weatherData.temperature}°C`;
-        document.getElementById('humidity').textContent = `${weatherData.humidity}%`;
-        document.getElementById('condition').textContent = weatherData.condition;
-        document.getElementById('wind-speed').textContent = `${weatherData.windSpeed} km/h`;
-        document.getElementById('pressure').textContent = `${weatherData.pressure} hPa`;
-        document.getElementById('feels-like').textContent = `${weatherData.feelsLike}°C`;
-        document.getElementById('uv-index').textContent = `${weatherData.uvIndex}`;
-        document.getElementById('visibility').textContent = `${weatherData.visibility} km`;
-        document.getElementById('last-updated').textContent = new Date().toLocaleString();
-        
-        // Update location info
-        document.getElementById('location').innerHTML = 
-            `📍 <strong>${weatherData.location}, ${weatherData.region}, ${weatherData.country}</strong>`;
-        
-        // Update status based on live data
-        if (weatherData.isLive) {
-            document.getElementById('api-status').innerHTML = 
-                '✅ <strong>LIVE DATA CONNECTED</strong><br>Refreshing every 30 seconds';
-            document.getElementById('api-status').className = 'status-live';
-            document.getElementById('data-source').textContent = 
-                `🌐 Live API • ${weatherData.localTime || 'Real-time data'}`;
-        } else {
-            document.getElementById('api-status').innerHTML = 
-                '⚠️ <strong>SIMULATION MODE</strong><br>API connection failed - using realistic data';
-            document.getElementById('api-status').className = 'status-demo';
-            document.getElementById('data-source').textContent = '💡 Realistic simulation data';
-        }
-        
-    } catch (error) {
-        console.error('Error in getLiveWeather:', error);
-        document.getElementById('api-status').innerHTML = 
-            '❌ <strong>ERROR LOADING DATA</strong><br>Check console for details';
-        document.getElementById('api-status').className = 'status-error';
-    }
+function showFallbackData() {
+    // Realistic fallback data for Solapur
+    const fallbackData = {
+        temperature: 30 + Math.floor(Math.random() * 5), // 30-34°C
+        humidity: 50 + Math.floor(Math.random() * 20),   // 50-70%
+        condition: ['Sunny', 'Partly cloudy', 'Clear', 'Hazy'][Math.floor(Math.random() * 4)],
+        windSpeed: 8 + Math.floor(Math.random() * 12),   // 8-20 km/h
+        pressure: 1010 + Math.floor(Math.random() * 10)  // 1010-1020 hPa
+    };
+    
+    document.getElementById('api-status').innerHTML = 
+        '⚠️ <strong>FALLBACK MODE</strong><br>API temporarily unavailable';
+    document.getElementById('location').innerHTML = '📍 Solapur, Maharashtra, India';
+    
+    // Show fallback data
+    document.getElementById('temperature').textContent = `${fallbackData.temperature}°C`;
+    document.getElementById('humidity').textContent = `${fallbackData.humidity}%`;
+    document.getElementById('condition').textContent = fallbackData.condition;
+    document.getElementById('wind-speed').textContent = `${fallbackData.windSpeed} km/h`;
+    document.getElementById('pressure').textContent = `${fallbackData.pressure} hPa`;
+    document.getElementById('feels-like').textContent = `${fallbackData.temperature + 2}°C`;
+    document.getElementById('last-updated').textContent = new Date().toLocaleString();
+    document.getElementById('data-source').textContent = '💡 Using realistic simulation data';
 }
 
 // Simple refresh controls
