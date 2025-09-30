@@ -6,11 +6,16 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('condition').textContent = 'Loading...';
     
     // Then load weather data
-    setTimeout(getEnhancedWeather, 100);
+    setTimeout(getLiveWeather, 100);
 });
+
 // Your REAL API Key from WeatherAPI.com
 const WEATHER_API_KEY = 'e2ad8f40b825445d9f763522253009';
 const WEATHER_API_URL = `https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=Solapur&aqi=no`;
+
+// Refresh settings
+let refreshInterval = 30000; // 30 seconds default
+let autoRefreshEnabled = true;
 
 class RealWeatherService {
     constructor() {
@@ -50,8 +55,6 @@ class RealWeatherService {
             feelsLike: Math.round(current.feelslike_c),
             uvIndex: current.uv,
             visibility: current.vis_km,
-            windDirection: current.wind_dir,
-            cloudCover: current.cloud,
             source: 'WeatherAPI.com - LIVE',
             isLive: true,
             location: location.name,
@@ -106,7 +109,7 @@ async function getLiveWeather() {
         // Update status based on live data
         if (weatherData.isLive) {
             document.getElementById('api-status').innerHTML = 
-                '✅ <strong>LIVE DATA CONNECTED</strong><br>Real-time weather from WeatherAPI.com';
+                '✅ <strong>LIVE DATA CONNECTED</strong><br>Refreshing every 30 seconds';
             document.getElementById('api-status').className = 'status-live';
             document.getElementById('data-source').textContent = 
                 `🌐 Live API • ${weatherData.localTime || 'Real-time data'}`;
@@ -118,4 +121,42 @@ async function getLiveWeather() {
         }
         
     } catch (error) {
-        console.error('Error in getLiveWeather:', error
+        console.error('Error in getLiveWeather:', error);
+        document.getElementById('api-status').innerHTML = 
+            '❌ <strong>ERROR LOADING DATA</strong><br>Check console for details';
+        document.getElementById('api-status').className = 'status-error';
+    }
+}
+
+// Simple refresh controls
+function setRefreshRate(seconds) {
+    refreshInterval = seconds * 1000;
+    clearInterval(window.refreshTimer);
+    
+    if (autoRefreshEnabled) {
+        window.refreshTimer = setInterval(getLiveWeather, refreshInterval);
+        document.getElementById('refresh-status').textContent = `Auto-refresh: ${seconds}s`;
+    }
+}
+
+function toggleAutoRefresh() {
+    autoRefreshEnabled = !autoRefreshEnabled;
+    
+    if (autoRefreshEnabled) {
+        window.refreshTimer = setInterval(getLiveWeather, refreshInterval);
+        document.getElementById('toggle-refresh').textContent = '⏸️ Pause Auto-Refresh';
+        document.getElementById('refresh-status').textContent = `Auto-refresh: ${refreshInterval/1000}s`;
+    } else {
+        clearInterval(window.refreshTimer);
+        document.getElementById('toggle-refresh').textContent = '▶️ Start Auto-Refresh';
+        document.getElementById('refresh-status').textContent = 'Auto-refresh: PAUSED';
+    }
+}
+
+// Start auto-refresh
+window.refreshTimer = setInterval(getLiveWeather, refreshInterval);
+
+// Make functions available globally
+window.getLiveWeather = getLiveWeather;
+window.setRefreshRate = setRefreshRate;
+window.toggleAutoRefresh = toggleAutoRefresh;
