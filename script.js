@@ -1,3 +1,13 @@
+// Show loading immediately
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('api-status').innerHTML = '🔄 Fetching live data...';
+    document.getElementById('temperature').textContent = 'Loading...';
+    document.getElementById('humidity').textContent = 'Loading...';
+    document.getElementById('condition').textContent = 'Loading...';
+    
+    // Then load weather data
+    setTimeout(getEnhancedWeather, 100);
+});
 // Your REAL API Key from WeatherAPI.com
 const WEATHER_API_KEY = 'e2ad8f40b825445d9f763522253009';
 const WEATHER_API_URL = `https://api.weatherapi.com/v1/current.json?key=${WEATHER_API_KEY}&q=Solapur&aqi=no`;
