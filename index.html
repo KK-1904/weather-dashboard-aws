@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Dashboard - AWS Powered</title>
+    <title>Live Weather Dashboard - AWS Architecture</title>
     <style>
         * {
             margin: 0;
@@ -12,7 +12,7 @@
         }
         
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
@@ -20,7 +20,7 @@
         }
         
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
         }
         
@@ -42,6 +42,17 @@
         .header h3 {
             color: #636e72;
             font-weight: normal;
+        }
+        
+        .live-banner {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
         }
         
         .dashboard {
@@ -67,8 +78,9 @@
         .weather-card h2 {
             color: #2d3436;
             margin-bottom: 20px;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .data-item {
@@ -84,22 +96,13 @@
         }
         
         .data-label {
-            font-weight: bold;
+            font-weight: 600;
             color: #2d3436;
         }
         
         .data-value {
             font-weight: 500;
-            color: #667eea;
-        }
-        
-        .demo-banner {
-            background: #e3f2fd;
-            border: 2px solid #2196f3;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
-            text-align: center;
+            color: #0984e3;
         }
         
         .aws-services {
@@ -109,8 +112,10 @@
         
         .aws-services h3 {
             color: #ff9900;
-            margin-bottom: 20px;
-            text-align: center;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .service-list {
@@ -118,7 +123,7 @@
         }
         
         .service-list li {
-            padding: 10px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #34495e;
             display: flex;
             align-items: center;
@@ -130,7 +135,7 @@
         }
         
         .btn {
-            background: #667eea;
+            background: #0984e3;
             color: white;
             border: none;
             padding: 12px 24px;
@@ -138,12 +143,19 @@
             cursor: pointer;
             font-size: 16px;
             margin: 10px 5px;
-            transition: all 0.3s;
+            transition: background 0.3s;
         }
         
         .btn:hover {
-            background: #5a6fd8;
-            transform: translateY(-2px);
+            background: #0770c4;
+        }
+        
+        .btn-secondary {
+            background: #636e72;
+        }
+        
+        .btn-secondary:hover {
+            background: #2d3436;
         }
         
         .status {
@@ -160,10 +172,16 @@
             border: 2px solid #c3e6cb;
         }
         
-        .cost-section {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 10px;
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        
+        .architecture-panel {
+            background: #e8f4fd;
+            border-radius: 8px;
+            padding: 20px;
             margin-top: 20px;
         }
     </style>
@@ -172,114 +190,104 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>🌤️ AWS Weather Dashboard</h1>
-            <h3>Serverless Architecture Demo</h3>
+            <h1>🌤️ Live Weather Dashboard</h1>
+            <h3>Real-time Data with AWS Architecture Demo</h3>
+        </div>
+
+        <!-- Live Data Banner -->
+        <div class="live-banner">
+            🚀 LIVE WEATHER DATA - Solapur, Maharashtra<br>
+            Powered by Open-Meteo API • Updates every 5 minutes
         </div>
 
         <div class="dashboard">
             <!-- Weather Data Card -->
             <div class="card weather-card">
-                <h2>📍 Weather Data</h2>
+                <h2>📍 Current Weather</h2>
                 
-                <div class="demo-banner">
-                    <strong>🚀 Frontend Ready!</strong><br>
-                    AWS backend integration pending
-                </div>
-
                 <div id="weather-data">
                     <div class="data-item">
                         <span class="data-label">🌡️ Temperature</span>
-                        <span class="data-value" id="temperature">-- °C</span>
+                        <span class="data-value" id="temperature">Loading...</span>
                     </div>
                     <div class="data-item">
                         <span class="data-label">💧 Humidity</span>
-                        <span class="data-value" id="humidity">-- %</span>
+                        <span class="data-value" id="humidity">Loading...</span>
                     </div>
                     <div class="data-item">
                         <span class="data-label">☀️ Condition</span>
-                        <span class="data-value" id="condition">--</span>
+                        <span class="data-value" id="condition">Loading...</span>
                     </div>
                     <div class="data-item">
                         <span class="data-label">💨 Wind Speed</span>
-                        <span class="data-value" id="wind-speed">-- km/h</span>
+                        <span class="data-value" id="wind-speed">Loading...</span>
                     </div>
                     <div class="data-item">
                         <span class="data-label">🕒 Last Updated</span>
-                        <span class="data-value" id="last-updated">--</span>
+                        <span class="data-value" id="last-updated">Loading...</span>
                     </div>
                 </div>
 
-                <div class="status connected">
-                    ✅ GitHub Pages: Live!<br>
-                    🔄 AWS Lambda: Ready to Connect
+                <div class="status connected" id="api-status">
+                    🔄 Fetching live weather data...
                 </div>
 
-                <button class="btn" onclick="loadDemoData()">
-                    🎯 Load Demo Data
+                <button class="btn" onclick="getLiveWeather()">
+                    🔄 Refresh Live Data
+                </button>
+                <button class="btn btn-secondary" onclick="showArchitecture()">
+                    🏗️ Show Architecture
                 </button>
             </div>
 
             <!-- AWS Services Card -->
             <div class="card aws-services">
-                <h3>🛠️ AWS Architecture</h3>
+                <h3>🛠️ System Architecture</h3>
                 <ul class="service-list">
-                    <li>🚀 <strong>AWS Lambda</strong> - Serverless backend</li>
-                    <li>💾 <strong>DynamoDB</strong> - Data storage</li>
-                    <li>🌐 <strong>API Gateway</strong> - REST API</li>
-                    <li>📊 <strong>GitHub Pages</strong> - This website!</li>
+                    <li>🌐 <strong>GitHub Pages</strong> - Free website hosting</li>
+                    <li>📡 <strong>Open-Meteo API</strong> - Real-time weather data</li>
+                    <li>⚡ <strong>JavaScript</strong> - Live data processing</li>
+                    <li>🎯 <strong>Browser</strong> - Real-time updates</li>
                 </ul>
                 
-                <div class="cost-section">
-                    <h4>💰 Cost: $0 / month</h4>
-                    <p>All services within AWS Free Tier</p>
+                <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                    <h4>💰 Cost Analysis</h4>
+                    <p><strong>Total Monthly Cost: $0</strong></p>
+                    <p>✅ No AWS billing risk</p>
+                    <p>✅ Real-time data</p>
+                    <p>✅ Professional dashboard</p>
                 </div>
             </div>
         </div>
 
-        <!-- Next Steps -->
-        <div class="card">
-            <h3>📋 Next Steps</h3>
-            <ol style="margin-left: 20px; margin-top: 15px;">
-                <li>✅ <strong>Website Hosted</strong> - Complete! ���</li>
-                <li>🔄 <strong>Setup AWS Lambda</strong> - Your next task</li>
-                <li>🔗 <strong>Connect API</strong> - Final integration</li>
-            </ol>
-            <p style="margin-top: 15px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
-                <strong>Your website URL:</strong><br>
-                <code id="website-url">https://yourusername.github.io/weather-dashboard-aws</code>
-            </p>
+        <!-- Architecture Information -->
+        <div id="architecture-panel" class="card" style="display: none;">
+            <h3>🏗️ How This Live System Works</h3>
+            <div class="architecture-panel">
+                <p><strong>1. Real Data Source:</strong> Weather stations around Solapur (17.68°N, 75.92°E)</p>
+                <p><strong>2. API Integration:</strong> Open-Meteo provides free real-time weather data</p>
+                <p><strong>3. Frontend:</strong> GitHub Pages hosts this website for FREE</p>
+                <p><strong>4. Live Updates:</strong> JavaScript fetches new data every 5 minutes</p>
+                <p><strong>5. User Experience:</strong> Real-time weather display with manual refresh</p>
+            </div>
+            <button class="btn" onclick="hideArchitecture()">Close</button>
         </div>
     </div>
 
+    <!-- Link to JavaScript file -->
+    <script src="script.js"></script>
+    
     <script>
-        function loadDemoData() {
-            // Demo data - will be replaced with real AWS data later
-            const demoData = {
-                temperature: '32°C',
-                humidity: '45%',
-                condition: 'Sunny',
-                wind_speed: '15 km/h',
-                timestamp: new Date().toISOString()
-            };
-            
-            document.getElementById('temperature').textContent = demoData.temperature;
-            document.getElementById('humidity').textContent = demoData.humidity;
-            document.getElementById('condition').textContent = demoData.condition;
-            document.getElementById('wind-speed').textContent = demoData.wind_speed;
-            document.getElementById('last-updated').textContent = 
-                new Date(demoData.timestamp).toLocaleString();
-                
-            // Show success message
-            alert('✅ Demo data loaded! Next: Setup AWS Lambda backend.');
+        function showArchitecture() {
+            document.getElementById('architecture-panel').style.display = 'block';
         }
         
-        // Show current website URL
-        document.getElementById('website-url').textContent = window.location.href;
+        function hideArchitecture() {
+            document.getElementById('architecture-panel').style.display = 'none';
+        }
         
-        // Load initial demo data
-        document.addEventListener('DOMContentLoaded', function() {
-            loadDemoData();
-        });
+        // Show current time initially
+        document.getElementById('last-updated').textContent = new Date().toLocaleString();
     </script>
 </body>
 </html>
