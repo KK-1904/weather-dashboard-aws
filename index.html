@@ -3,50 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solapur Live Weather - Fast & Simple</title>
+    <title>Solapur Live Weather - Enhanced</title>
     <style>
+        /* Your existing styles + Add these new styles */
+        
+        /* Theme Variables */
+        :root {
+            --primary-color: #0984e3;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-bg: white;
+            --text-color: #333;
+        }
+        
+        .dark-theme {
+            --primary-color: #74b9ff;
+            --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            --card-bg: #2d3436;
+            --text-color: white;
+        }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-gradient);
             margin: 0;
             padding: 20px;
             min-height: 100vh;
-            color: #333;
+            color: var(--text-color);
+            transition: all 0.3s ease;
         }
+        
         .container {
             max-width: 1000px;
             margin: 0 auto;
         }
+        
         .header {
             text-align: center;
-            background: white;
+            background: var(--card-bg);
             padding: 30px;
             border-radius: 15px;
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
-        .location-info {
-            text-align: center;
-            background: linear-gradient(135deg, #74b9ff, #0984e3);
+        
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
             color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            font-size: 1.2em;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
         }
+        
+        /* Weather Icon Styles */
+        .weather-icon-large {
+            font-size: 4em;
+            text-align: center;
+            margin: 10px 0;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* Alert Styles */
+        .alert-banner {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+            animation: slideDown 0.5s ease-out;
+            display: none;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .alert-high { background: #ff6b6b; } /* Red for high temp */
+        .alert-medium { background: #feca57; color: #333; } /* Yellow */
+        .alert-low { background: #48dbfb; color: #333; } /* Blue */
+        
+        /* Card enhancements */
         .card {
-            background: white;
+            background: var(--card-bg);
             padding: 25px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            transition: all 0.3s ease;
         }
+        
         .data-item {
             display: flex;
             justify-content: space-between;
             padding: 12px 0;
             border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
         }
+        
+        .dark-theme .data-item {
+            border-bottom: 1px solid #444;
+        }
+        
+        /* Your existing refresh controls and other styles remain the same */
         .refresh-controls {
             background: #e3f2fd;
             padding: 15px;
@@ -54,6 +123,11 @@
             margin: 15px 0;
             text-align: center;
         }
+        
+        .dark-theme .refresh-controls {
+            background: #1e3a5c;
+        }
+        
         .refresh-buttons {
             display: flex;
             gap: 10px;
@@ -61,8 +135,9 @@
             margin: 10px 0;
             flex-wrap: wrap;
         }
+        
         .btn {
-            background: #0984e3;
+            background: var(--primary-color);
             color: white;
             border: none;
             padding: 10px 15px;
@@ -70,6 +145,7 @@
             cursor: pointer;
             font-size: 14px;
         }
+        
         .status-live {
             background: #d4edda;
             color: #155724;
@@ -78,6 +154,12 @@
             text-align: center;
             margin: 15px 0;
         }
+        
+        .dark-theme .status-live {
+            background: #1e3d2e;
+            color: #90ee90;
+        }
+        
         .last-updated {
             background: #f8f9fa;
             padding: 12px;
@@ -85,13 +167,26 @@
             text-align: center;
             margin: 10px 0;
         }
+        
+        .dark-theme .last-updated {
+            background: #3d3d3d;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Theme Toggle Button -->
+        <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+        
         <div class="header">
             <h1>🌤️ Solapur Live Weather</h1>
-            <p>Simple & Fast Refresh</p>
+            <p>Enhanced with Alerts & Visual Themes</p>
+        </div>
+
+        <!-- Alert Banner -->
+        <div id="alert-banner" class="alert-banner">
+            <span id="alert-message">Alert message will appear here</span>
+            <button onclick="closeAlert()" style="margin-left: 15px; background: rgba(255,255,255,0.3); border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">✕</button>
         </div>
 
         <div class="location-info" id="location">
@@ -100,6 +195,9 @@
 
         <div class="card">
             <h2>📊 Current Weather</h2>
+            
+            <!-- Large Weather Icon -->
+            <div class="weather-icon-large" id="weather-icon">⛅</div>
             
             <div id="weather-data">
                 <div class="data-item">
@@ -133,7 +231,7 @@
                 <span id="last-updated">--</span>
             </div>
 
-            <!-- Simple Refresh Controls -->
+            <!-- Refresh Controls -->
             <div class="refresh-controls">
                 <h3>🔄 Refresh Controls</h3>
                 <div id="refresh-status" style="font-weight: bold; margin: 10px 0;">
@@ -144,7 +242,8 @@
                     <button class="btn" onclick="setRefreshRate(30)">30s</button>
                     <button class="btn" onclick="setRefreshRate(60)">1m</button>
                     <button class="btn" onclick="toggleAutoRefresh()" id="toggle-refresh">Pause</button>
-                    <button class="btn" onclick="getLiveWeather()">Refresh Now</button>
+                    <button class="btn" onclick="getAWSWeather()">Refresh Now</button>
+                    <button class="btn" onclick="testAlerts()">Test Alerts</button>
                 </div>
             </div>
 
