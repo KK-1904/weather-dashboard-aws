@@ -1,205 +1,148 @@
-// ========================
-// AWS API Gateway URL
-// ========================
-const AWS_API_URL = 'https://3o55x0epmc.execute-api.ap-south-1.amazonaws.com/prod/weather';
+<script>
+let currentTheme = 'light';
+let refreshInterval = 30000; // default 30s
+let refreshTimer;
 
-// ========================
-// Theme Management
-// ========================
+// Toggle Dark/Light Theme
 function toggleTheme() {
     document.body.classList.toggle('dark-theme');
-    const isDark = document.body.classList.contains('dark-theme');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    document.querySelector('.theme-toggle').textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+    currentTheme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
 }
 
-function loadTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark-theme');
-        document.querySelector('.theme-toggle').textContent = '☀️ Light Mode';
-    }
-}
-
-// ========================
-// Alert System
-// ========================
-function showAlert(message, type = 'alert-medium') {
-    const alertBanner = document.getElementById('alert-banner');
-    const alertMessage = document.getElementById('alert-message');
-    
-    alertMessage.textContent = message;
-    alertBanner.className = `alert-banner ${type}`;
-    alertBanner.style.display = 'block';
-    
-    setTimeout(() => {
-        if (alertBanner.style.display === 'block') {
-            closeAlert();
-        }
-    }, 10000);
+// Alert Banner Control
+function showAlert(message, level='high') {
+    const banner = document.getElementById('alert-banner');
+    const alertMsg = document.getElementById('alert-message');
+    banner.style.display = 'block';
+    alertMsg.textContent = message;
+    banner.className = `alert-banner alert-${level}`;
 }
 
 function closeAlert() {
     document.getElementById('alert-banner').style.display = 'none';
 }
 
-function checkWeatherAlerts(weatherData) {
-    const temp = weatherData.temperature;
-    const humidity = weatherData.humidity;
-    const condition = weatherData.condition.toLowerCase();
-
-    // Temperature alerts
-    if (temp > 35) showAlert(`🔥 HIGH TEMPERATURE ALERT! ${temp}°C - Stay hydrated and avoid direct sun.`, 'alert-high');
-    else if (temp > 32) showAlert(`🌡️ Warm day: ${temp}°C - Perfect for outdoor activities.`, 'alert-medium');
-    else if (temp < 25) showAlert(`❄️ Cool temperature: ${temp}°C - You might need a light jacket.`, 'alert-low');
-
-    // Humidity alerts
-    if (humidity > 80) showAlert(`💧 HIGH HUMIDITY: ${humidity}% - Muggy conditions expected.`, 'alert-medium');
-    else if (humidity < 30) showAlert(`🏜️ LOW HUMIDITY: ${humidity}% - Stay hydrated.`, 'alert-low');
-
-    // Weather condition alerts
-    if (condition.includes('rain') || condition.includes('drizzle')) showAlert(`☔ RAIN ALERT: ${weatherData.condition} - Don't forget your umbrella!`, 'alert-low');
-    else if (condition.includes('thunderstorm')) showAlert(`⛈️ THUNDERSTORM ALERT: ${weatherData.condition} - Stay indoors if possible.`, 'alert-high');
-    else if (condition.includes('clear') || condition.includes('sunny')) showAlert(`😊 Perfect weather: ${weatherData.condition} - Great day to go outside!`, 'alert-low');
+// Refresh Rate Controls
+function setRefreshRate(seconds) {
+    refreshInterval = seconds * 1000;
+    document.getElementById('refresh-status').textContent = `Auto-refresh: ${seconds}s`;
+    if(refreshTimer) clearInterval(refreshTimer);
+    refreshTimer = setInterval(fetchAllData, refreshInterval);
 }
 
-// ========================
-// Weather Icons
-// ========================
-function getWeatherIcon(weatherCode, isDay = true) {
-    const icons = {
-        0: isDay ? '☀️' : '🌙',  
-        1: isDay ? '🌤️' : '🌙',
-        2: '⛅',
-        3: '☁️',
-        45: '🌫️',
-        48: '🌫️',
-        51: '🌦️',
-        53: '🌦️',
-        55: '🌧️',
-        61: '🌧️',
-        63: '🌧️',
-        65: '🌧️',
-        80: '🌦️',
-        81: '🌧️',
-        82: '⛈️',
-        95: '⛈️',
-        96: '⛈️',
-        99: '⛈️'
-    };
-    return icons[weatherCode] || '🌈';
-}
-
-function updateWeatherIcon(weatherCode) {
-    const isDay = new Date().getHours() >= 6 && new Date().getHours() < 18;
-    const icon = getWeatherIcon(weatherCode, isDay);
-    document.getElementById('weather-icon').textContent = icon;
-}
-
-// ========================
-// AWS Display Update
-// ========================
-function updateAWSDisplay(result) {
-    const weatherData = result.data;
-    
-    document.getElementById('temperature').textContent = `${Math.round(weatherData.temperature)}°C`;
-    document.getElementById('humidity').textContent = `${Math.round(weatherData.humidity)}%`;
-    document.getElementById('condition').textContent = weatherCodes[weatherData.weather_code] || weatherData.condition || 'Unknown';
-    document.getElementById('wind-speed').textContent = `${Math.round(weatherData.wind_speed)} km/h`;
-    document.getElementById('pressure').textContent = `${Math.round(weatherData.pressure)} hPa`;
-    document.getElementById('feels-like').textContent = `${Math.round(weatherData.temperature)}°C`;
-    document.getElementById('last-updated').textContent = new Date().toLocaleString();
-    document.getElementById('location').innerHTML = `📍 <strong>Solapur, Maharashtra, India</strong>`;
-
-    updateWeatherIcon(weatherData.weather_code);
-    checkWeatherAlerts(weatherData);
-
-    document.getElementById('api-status').innerHTML = '✅ <strong>AWS CONNECTED</strong><br>With Smart Alerts & Themes';
-    document.getElementById('api-status').className = 'status-live';
-    document.getElementById('data-source').textContent = `🌐 AWS Serverless • Real-time alerts enabled`;
-}
-
-// ========================
-// Weather Codes Mapping
-// ========================
-const weatherCodes = {
-    0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
-    45: 'Fog', 48: 'Fog', 51: 'Light drizzle', 53: 'Moderate drizzle', 55: 'Dense drizzle',
-    61: 'Light rain', 63: 'Moderate rain', 65: 'Heavy rain',
-    80: 'Light rain showers', 81: 'Moderate rain showers', 82: 'Heavy rain showers',
-    95: 'Thunderstorm'
-};
-
-// ========================
-// Refresh Settings
-// ========================
-let refreshInterval = 60000;
-let autoRefreshEnabled = true;
-
-// ========================
-// AWS Fetch Functions
-// ========================
-async function getAWSWeather() {
-    try {
-        console.log('🔗 Fetching data from AWS API Gateway...');
-        const response = await fetch(AWS_API_URL);
-        if (!response.ok) throw new Error(`AWS API Error: ${response.status}`);
-        const result = await response.json();
-        console.log('✅ AWS data received:', result);
-        updateAWSDisplay(result);
-    } catch (error) {
-        console.error('❌ AWS API failed:', error);
-        getDirectWeather();
+function toggleAutoRefresh() {
+    if(refreshTimer) {
+        clearInterval(refreshTimer);
+        refreshTimer = null;
+        document.getElementById('toggle-refresh').textContent = '▶ Resume Auto-Refresh';
+    } else {
+        refreshTimer = setInterval(fetchAllData, refreshInterval);
+        document.getElementById('toggle-refresh').textContent = '⏸ Pause Auto-Refresh';
     }
 }
 
-async function getDirectWeather() {
+// Search Location
+function searchLocation() {
+    const query = document.getElementById('search-input').value;
+    if(!query) return alert('Please enter a location');
+    fetchGeocode(query);
+}
+
+// Geocoding API
+async function fetchGeocode(location) {
     try {
-        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=17.68&longitude=75.92&current_weather=true&timezone=auto');
+        // Replace with your Geocoding API key
+        const apiKey = 'YOUR_GEOCODING_API_KEY';
+        const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(location)}&key=${apiKey}`;
+        const response = await fetch(url);
         const data = await response.json();
-        const compatibleData = {
-            data: {
-                temperature: data.current_weather.temperature,
-                humidity: data.current_weather.relative_humidity || 50,
-                weather_code: data.current_weather.weathercode,
-                condition: weatherCodes[data.current_weather.weathercode] || 'Unknown',
-                wind_speed: data.current_weather.windspeed,
-                pressure: 1013
-            }
-        };
-        updateAWSDisplay(compatibleData);
-        document.getElementById('api-status').innerHTML = '⚠️ <strong>Direct Weather API</strong><br>Fallback Mode';
-        document.getElementById('api-status').className = 'status-fallback';
+        if(data.results.length > 0) {
+            const { lat, lng } = data.results[0].geometry;
+            document.getElementById('location').textContent = `📍 ${data.results[0].formatted}`;
+            fetchAllData(lat, lng);
+        } else {
+            alert('Location not found');
+        }
     } catch (error) {
-        console.error('❌ Direct Weather API failed:', error);
-        document.getElementById('api-status').innerHTML = '❌ <strong>Weather Data Unavailable</strong>';
-        document.getElementById('api-status').className = 'status-error';
+        console.error('Geocoding error:', error);
     }
 }
 
-// ========================
-// Test Alerts Function
-// ========================
-function testAlerts() {
-    const testConditions = [
-        { temperature: 36, humidity: 45, condition: 'Clear sky' },
-        { temperature: 28, humidity: 85, condition: 'Heavy rain' },
-        { temperature: 22, humidity: 25, condition: 'Clear sky' }
-    ];
-    const randomCondition = testConditions[Math.floor(Math.random() * testConditions.length)];
-    checkWeatherAlerts(randomCondition);
+// Fetch All Data (Weather + Flood + Air + Elevation + Marine)
+async function fetchAllData(lat, lon) {
+    if(!lat || !lon) {
+        // Default coordinates (Solapur)
+        lat = 17.6599;
+        lon = 75.9064;
+    }
+    fetchWeather(lat, lon);
+    fetchFlood(lat, lon);
+    fetchAirQuality(lat, lon);
+    fetchElevation(lat, lon);
+    fetchMarineForecast(lat, lon);
 }
 
-// ========================
-// Initialize on Page Load
-// ========================
-document.addEventListener('DOMContentLoaded', function() {
-    loadTheme();
-    document.getElementById('api-status').innerHTML = '🔄 Connecting to AWS...';
-    setTimeout(getAWSWeather, 100);
-
-    // Auto-refresh weather
-    if (autoRefreshEnabled) {
-        setInterval(getAWSWeather, refreshInterval);
+// Weather API
+async function fetchWeather(lat, lon) {
+    try {
+        // Replace with your Weather API
+        const apiKey = 'YOUR_WEATHER_API_KEY';
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        document.getElementById('temperature').textContent = `${data.main.temp}°C`;
+        document.getElementById('humidity').textContent = `${data.main.humidity}%`;
+        document.getElementById('condition').textContent = data.weather[0].description;
+        document.getElementById('wind-speed').textContent = `${data.wind.speed} km/h`;
+        document.getElementById('pressure').textContent = `${data.main.pressure} hPa`;
+        document.getElementById('feels-like').textContent = `${data.main.feels_like}°C`;
+        document.getElementById('weather-icon').textContent = getWeatherEmoji(data.weather[0].main);
+        document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+    } catch (error) {
+        console.error('Weather API error:', error);
     }
-});
+}
+
+// Placeholder function to map weather to emoji
+function getWeatherEmoji(condition) {
+    switch(condition.toLowerCase()) {
+        case 'clear': return '☀️';
+        case 'clouds': return '☁️';
+        case 'rain': return '🌧️';
+        case 'thunderstorm': return '⛈️';
+        case 'snow': return '❄️';
+        default: return '⛅';
+    }
+}
+
+// Flood API
+async function fetchFlood(lat, lon) {
+    console.log('Fetching flood data for', lat, lon);
+    // Add your Flood API call here
+}
+
+// Air Quality API
+async function fetchAirQuality(lat, lon) {
+    console.log('Fetching air quality data for', lat, lon);
+    // Add your Air Quality API call here
+}
+
+// Elevation API
+async function fetchElevation(lat, lon) {
+    console.log('Fetching elevation data for', lat, lon);
+    // Add your Elevation API call here
+}
+
+// Marine Forecast API
+async function fetchMarineForecast(lat, lon) {
+    console.log('Fetching marine forecast data for', lat, lon);
+    // Add your Marine Forecast API call here
+}
+
+// Initialize
+window.onload = function() {
+    fetchAllData();
+    refreshTimer = setInterval(fetchAllData, refreshInterval);
+}
+</script>
+
