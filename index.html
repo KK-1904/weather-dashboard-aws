@@ -1,3 +1,4 @@
+html 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,20 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solapur Live Weather - Enhanced</title>
     <style>
+        /* Your existing styles + Add these new styles */
+        
+        /* Theme Variables */
         :root {
             --primary-color: #0984e3;
             --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --card-bg: white;
             --text-color: #333;
         }
-
+        
         .dark-theme {
             --primary-color: #74b9ff;
             --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             --card-bg: #2d3436;
             --text-color: white;
         }
-
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: var(--bg-gradient);
@@ -28,13 +32,12 @@
             color: var(--text-color);
             transition: all 0.3s ease;
         }
-
+        
         .container {
             max-width: 1000px;
             margin: 0 auto;
-            position: relative;
         }
-
+        
         .header {
             text-align: center;
             background: var(--card-bg);
@@ -43,7 +46,7 @@
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
-
+        
         .theme-toggle {
             position: absolute;
             top: 20px;
@@ -56,44 +59,21 @@
             cursor: pointer;
             font-size: 14px;
         }
-
-        .search-bar {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .search-bar input {
-            width: 70%;
-            padding: 10px 15px;
-            font-size: 16px;
-            border-radius: 10px;
-            border: none;
-            outline: none;
-        }
-
-        .search-bar button {
-            padding: 10px 15px;
-            font-size: 16px;
-            border-radius: 10px;
-            border: none;
-            background: var(--primary-color);
-            color: white;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-
+        
+        /* Weather Icon Styles */
         .weather-icon-large {
             font-size: 4em;
             text-align: center;
             margin: 10px 0;
             animation: float 3s ease-in-out infinite;
         }
-
+        
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-10px); }
         }
-
+        
+        /* Alert Styles */
         .alert-banner {
             background: #ff6b6b;
             color: white;
@@ -104,12 +84,17 @@
             animation: slideDown 0.5s ease-out;
             display: none;
         }
-
+        
         @keyframes slideDown {
             from { transform: translateY(-100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-
+        
+        .alert-high { background: #ff6b6b; } /* Red for high temp */
+        .alert-medium { background: #feca57; color: #333; } /* Yellow */
+        .alert-low { background: #48dbfb; color: #333; } /* Blue */
+        
+        /* Card enhancements */
         .card {
             background: var(--card-bg);
             padding: 25px;
@@ -118,18 +103,20 @@
             margin-bottom: 20px;
             transition: all 0.3s ease;
         }
-
+        
         .data-item {
             display: flex;
             justify-content: space-between;
             padding: 12px 0;
             border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
         }
-
+        
         .dark-theme .data-item {
             border-bottom: 1px solid #444;
         }
-
+        
+        /* Your existing refresh controls and other styles remain the same */
         .refresh-controls {
             background: #e3f2fd;
             padding: 15px;
@@ -137,11 +124,11 @@
             margin: 15px 0;
             text-align: center;
         }
-
+        
         .dark-theme .refresh-controls {
             background: #1e3a5c;
         }
-
+        
         .refresh-buttons {
             display: flex;
             gap: 10px;
@@ -149,7 +136,7 @@
             margin: 10px 0;
             flex-wrap: wrap;
         }
-
+        
         .btn {
             background: var(--primary-color);
             color: white;
@@ -159,7 +146,21 @@
             cursor: pointer;
             font-size: 14px;
         }
-
+        
+        .status-live {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .dark-theme .status-live {
+            background: #1e3d2e;
+            color: #90ee90;
+        }
+        
         .last-updated {
             background: #f8f9fa;
             padding: 12px;
@@ -167,31 +168,20 @@
             text-align: center;
             margin: 10px 0;
         }
-
+        
         .dark-theme .last-updated {
             background: #3d3d3d;
-        }
-
-        .location-info {
-            text-align: center;
-            font-size: 1.2em;
-            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Theme Toggle Button -->
         <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
-
+        
         <div class="header">
             <h1>🌤️ Solapur Live Weather</h1>
             <p>Enhanced with Alerts & Visual Themes</p>
-        </div>
-
-        <!-- Search Bar -->
-        <div class="search-bar">
-            <input type="text" id="search-location" placeholder="Enter city or coordinates...">
-            <button onclick="searchLocation()">🔍 Search</button>
         </div>
 
         <!-- Alert Banner -->
@@ -200,67 +190,74 @@
             <button onclick="closeAlert()" style="margin-left: 15px; background: rgba(255,255,255,0.3); border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">✕</button>
         </div>
 
-        <div class="location-info" id="location">📍 Loading location...</div>
+        <div class="location-info" id="location">
+            📍 Loading location...
+        </div>
 
         <div class="card">
             <h2>📊 Current Weather</h2>
+            
+            <!-- Large Weather Icon -->
             <div class="weather-icon-large" id="weather-icon">⛅</div>
+            
             <div id="weather-data">
-                <div class="data-item"><span>🌡️ Temperature</span><span id="temperature">--°C</span></div>
-                <div class="data-item"><span>💧 Humidity</span><span id="humidity">--%</span></div>
-                <div class="data-item"><span>☀️ Condition</span><span id="condition">--</span></div>
-                <div class="data-item"><span>💨 Wind Speed</span><span id="wind-speed">-- km/h</span></div>
-                <div class="data-item"><span>📊 Pressure</span><span id="pressure">-- hPa</span></div>
-                <div class="data-item"><span>🔥 Feels Like</span><span id="feels-like">--°C</span></div>
+                <div class="data-item">
+                    <span>🌡️ Temperature</span>
+                    <span id="temperature">--°C</span>
+                </div>
+                <div class="data-item">
+                    <span>💧 Humidity</span>
+                    <span id="humidity">--%</span>
+                </div>
+                <div class="data-item">
+                    <span>☀️ Condition</span>
+                    <span id="condition">--</span>
+                </div>
+                <div class="data-item">
+                    <span>💨 Wind Speed</span>
+                    <span id="wind-speed">-- km/h</span>
+                </div>
+                <div class="data-item">
+                    <span>📊 Pressure</span>
+                    <span id="pressure">-- hPa</span>
+                </div>
+                <div class="data-item">
+                    <span>🔥 Feels Like</span>
+                    <span id="feels-like">--°C</span>
+                </div>
             </div>
-            <div class="last-updated"><span>🕒 Last Updated: </span><span id="last-updated">--</span></div>
-        </div>
 
-        <!-- APIs Cards -->
-        <div class="card">
-            <h2>🌊 Flood API</h2>
-            <div id="flood-data">Data will appear here...</div>
-        </div>
-        <div class="card">
-            <h2>🌬 Air Quality API</h2>
-            <div id="air-quality-data">Data will appear here...</div>
-        </div>
-        <div class="card">
-            <h2>🗺 Geocoding API</h2>
-            <div id="geocode-data">Data will appear here...</div>
-        </div>
-        <div class="card">
-            <h2>🏔 Elevation API</h2>
-            <div id="elevation-data">Data will appear here...</div>
-        </div>
-        <div class="card">
-            <h2>🌊 Marine Forecast API</h2>
-            <div id="marine-data">Data will appear here...</div>
-        </div>
+            <div class="last-updated">
+                <span>🕒 Last Updated: </span>
+                <span id="last-updated">--</span>
+            </div>
 
+            <!-- Refresh Controls -->
+            <div class="refresh-controls">
+                <h3>🔄 Refresh Controls</h3>
+                <div id="refresh-status" style="font-weight: bold; margin: 10px 0;">
+                    Auto-refresh: 30s
+                </div>
+                <div class="refresh-buttons">
+                    <button class="btn" onclick="setRefreshRate(10)">10s</button>
+                    <button class="btn" onclick="setRefreshRate(30)">30s</button>
+                    <button class="btn" onclick="setRefreshRate(60)">1m</button>
+                    <button class="btn" onclick="toggleAutoRefresh()" id="toggle-refresh">Pause</button>
+                    <button class="btn" onclick="getAWSWeather()">Refresh Now</button>
+                    <button class="btn" onclick="testAlerts()">Test Alerts</button>
+                </div>
+            </div>
+
+            <div id="api-status" class="status-live">
+                🔄 Loading weather data...
+            </div>
+
+            <div id="data-source" style="text-align: center; color: #666; font-size: 14px;">
+                Loading data source...
+            </div>
+        </div>
     </div>
 
-    <script>
-        let darkMode = false;
-
-        function toggleTheme() {
-            document.body.classList.toggle("dark-theme");
-            darkMode = !darkMode;
-            document.querySelector(".theme-toggle").textContent = darkMode ? "☀️ Light Mode" : "🌙 Dark Mode";
-        }
-
-        function closeAlert() {
-            document.getElementById("alert-banner").style.display = "none";
-        }
-
-        // Search Location
-        function searchLocation() {
-            const location = document.getElementById("search-location").value;
-            if (!location) return alert("Please enter a location!");
-            
-            // Here you can call the geocoding API and other APIs using fetch
-            // Example placeholders:
-            document.getElementById("location").textContent = `📍 ${location}`;
-            document.getElementById("weather-data").innerHTML = `
-                <div class="data-item"><span>🌡️ Temperature</span><span>25°C</span></div>
-                <div class="data-item"><
+    <script src="script.js"></script>
+</body>
+</html>
